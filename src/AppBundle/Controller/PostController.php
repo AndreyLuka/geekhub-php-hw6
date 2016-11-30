@@ -2,57 +2,72 @@
 
 namespace AppBundle\Controller;
 
+use AppBundle\Entity\PostEntity;
+use AppBundle\Repository\PostRepository;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
 use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
 class PostController extends Controller
 {
     /**
-     * @Route("/", name="post_index")
+     * @var PostRepository
+     */
+    private $repository;
+
+    /**
+     * @Route("/posts", name="post_index")
      * @Method("GET")
      *
      * @return JsonResponse
      */
     public function indexAction()
     {
-        $dbPath = $this->get('kernel')->getBundle('AppBundle')->getPath().'/Database/posts.json';
-        $dbContent = file_get_contents($dbPath);
-        $db = json_decode($dbContent, true);
+        $this->repository = new PostRepository();
 
-        return new JsonResponse($db);
+        $postsData = $this->repository->findAll();
+
+        return new JsonResponse($postsData);
     }
 
     /**
-     * @Route("/post/new", name="post_new")
+     * @Route("/posts", name="post_new")
      * @Method("POST")
      *
-     * @return JsonResponse
+     * @param Request $request
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse
      */
-    public function newAction()
+    public function newAction(Request $request)
     {
-        $dbPath = $this->get('kernel')->getBundle('AppBundle')->getPath().'/Database/posts.json';
-        $dbContent = file_get_contents($dbPath);
-        $db = json_decode($dbContent, true);
+        $this->repository = new PostRepository();
 
-        end($db['posts']);
-        $lastId = key($db['posts']);
+        $request->initialize(
+            array(),
+            array(),
+            array(),
+            array(),
+            array(),
+            array(),
+            '{"title": "post-title-NEW", "content": "post-content-NEW"}'
+        );
 
-        $newPostData = [
-            'id' => $lastId + 1,
-            'title' => 'post-title-'.($lastId + 1),
-            'content' => 'post-title-'.($lastId + 1),
-        ];
+        $newPostData = json_decode($request->getContent(), true);
 
-        array_push($db['posts'], $newPostData);
-        file_put_contents($dbPath, json_encode($db));
+        $request->request->replace($newPostData);
 
-        return new JsonResponse($db);
+        $post = new PostEntity();
+        $post->setTitle($request->request->get('title'));
+        $post->setContent($request->request->get('content'));
+
+        $this->repository->insert($post);
+
+        return $this->redirectToRoute('post_index');
     }
 
     /**
-     * @Route("/post/{id}", requirements={"id": "\d+"}, name="post_show")
+     * @Route("/posts/{id}", requirements={"id": "\d+"}, name="post_show")
      * @Method("GET")
      *
      * @param int $id
@@ -61,50 +76,53 @@ class PostController extends Controller
      */
     public function showAction($id)
     {
-        $dbPath = $this->get('kernel')->getBundle('AppBundle')->getPath().'/Database/posts.json';
-        $dbContent = file_get_contents($dbPath);
-        $db = json_decode($dbContent, true);
+        $this->repository = new PostRepository();
 
-        if (isset($db['posts'][$id])) {
-            return new JsonResponse($db['posts'][$id]);
+        $postData = $this->repository->find($id);
+
+        if (!empty($postData)) {
+            return new JsonResponse($postData);
         } else {
             return new JsonResponse(['Error404:' => 'Not Found'], 404);
         }
     }
 
     /**
-     * @Route("/post/{id}/edit", requirements={"id": "\d+"}, name="post_edit")
+     * @Route("/posts/{id}", requirements={"id": "\d+"}, name="post_edit")
      * @Method({"PUT", "PATCH"})
      *
-     * @param int $id
-     *
+     * @param Request $request
+     * @param $id
      * @return JsonResponse
      */
-    public function editAction($id)
+    public function editAction(Request $request, $id)
     {
-        $dbPath = $this->get('kernel')->getBundle('AppBundle')->getPath().'/Database/posts.json';
-        $dbContent = file_get_contents($dbPath);
-        $db = json_decode($dbContent, true);
+        $this->repository = new PostRepository();
 
-        if (isset($db['posts'][$id])) {
-            $editedPostData = [
-                'id' => $id,
-                'title' => '(edited)-post-title-'.($id),
-                'content' => '(edited)-post-content-'.($id),
-            ];
+        $request->initialize(
+            array(),
+            array(),
+            array(),
+            array(),
+            array(),
+            array(),
+            '{"title": "post-title-EDITED", "content": "post-content-EDITED"}'
+        );
 
-            $db['posts'][$id] = $editedPostData;
+        $editedPostData = json_decode($request->getContent(), true);
 
-            file_put_contents($dbPath, json_encode($db));
+        $request->request->replace($editedPostData);
 
-            return new JsonResponse($db['posts'][$id]);
-        } else {
-            return new JsonResponse(['Error404:' => 'Not Found'], 404);
-        }
+        $post = new PostEntity();
+        $post->setId($id);
+        $post->setTitle($request->request->get('title'));
+        $post->setContent($request->request->get('content'));
+
+        return new JsonResponse($this->repository->update($post));
     }
 
     /**
-     * @Route("/post/{id}/delete", requirements={"id": "\d+"}, name="post_delete")
+     * @Route("/posts/{id}", requirements={"id": "\d+"}, name="post_delete")
      * @Method("DELETE")
      *
      * @param int $id
@@ -113,18 +131,10 @@ class PostController extends Controller
      */
     public function deleteAction($id)
     {
-        $dbPath = $this->get('kernel')->getBundle('AppBundle')->getPath().'/Database/posts.json';
-        $dbContent = file_get_contents($dbPath);
-        $db = json_decode($dbContent, true);
+        $this->repository = new PostRepository();
 
-        if (isset($db['posts'][$id])) {
-            unset($db['posts'][$id]);
+        $this->repository->remove($id);
 
-            file_put_contents($dbPath, json_encode($db));
-
-            return new JsonResponse($db);
-        } else {
-            return new JsonResponse(['Error404:' => 'Not Found'], 404);
-        }
+        return new JsonResponse(null, 204);
     }
 }
