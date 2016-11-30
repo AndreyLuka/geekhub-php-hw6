@@ -11,9 +11,9 @@ $ composer install
 
 ####Links:
 
-GET /<br>
-GET /post/{id}<br>
-POST /post/new<br>
-PUT /post/{id}/edit<br>
-PATCH /post/{id}/edit<br>
-DELETE /post/{id}/delete
+GET /posts<br>
+GET /posts/{id}<br>
+POST /posts<br>
+PUT /posts/{id}<br>
+PATCH /posts/{id}<br>
+DELETE /posts/{id}
