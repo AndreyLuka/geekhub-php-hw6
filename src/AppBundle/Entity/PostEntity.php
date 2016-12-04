@@ -2,25 +2,28 @@
 
 namespace AppBundle\Entity;
 
+/**
+ * Class PostEntity.
+ */
 class PostEntity
 {
     /**
-     * @var
+     * @var int
      */
     private $id;
 
     /**
-     * @var
+     * @var string
      */
     private $title;
 
     /**
-     * @var
+     * @var string
      */
     private $content;
 
     /**
-     * @param $id
+     * @param int $id
      */
     public function setId($id)
     {
@@ -28,7 +31,7 @@ class PostEntity
     }
 
     /**
-     * @param $title
+     * @param string $title
      */
     public function setTitle($title)
     {
@@ -36,7 +39,7 @@ class PostEntity
     }
 
     /**
-     * @param $content
+     * @param string $content
      */
     public function setContent($content)
     {
@@ -44,7 +47,7 @@ class PostEntity
     }
 
     /**
-     * @return mixed
+     * @return int
      */
     public function getId()
     {
@@ -52,7 +55,7 @@ class PostEntity
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getTitle()
     {
@@ -60,7 +63,7 @@ class PostEntity
     }
 
     /**
-     * @return mixed
+     * @return string
      */
     public function getContent()
     {

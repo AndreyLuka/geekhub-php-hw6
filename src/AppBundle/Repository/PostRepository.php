@@ -4,33 +4,28 @@ namespace AppBundle\Repository;
 
 use AppBundle\Entity\PostEntity;
 
-class PostRepository implements RepositoryInterface
+/**
+ * Class PostRepository.
+ */
+class PostRepository implements PostRepositoryInterface
 {
     /**
-     * @var Connector
+     * @var Storage
      */
-    private $connector;
+    private $storage;
 
     /**
      * @var mixed
      */
-    private $db;
-
-    /**
-     * @var PostEntity
-     */
-    private $post;
+    private $postsData;
 
     /**
      * PostRepository constructor.
      */
     public function __construct()
     {
-        $this->connector = new Connector();
-
-        $this->db = $this->connector->getDb();
-
-        $this->post = new PostEntity();
+        $this->storage = new Storage();
+        $this->postsData = $this->storage->getData('posts');
     }
 
     /**
@@ -38,43 +33,43 @@ class PostRepository implements RepositoryInterface
      */
     public function findAll()
     {
-        return $this->db;
+        return $this->postsData;
     }
 
     /**
-     * @param $postData
+     * @param PostEntity $postData
+     *
+     * @return bool
      */
-    public function insert($postData)
+    public function insert(PostEntity $postData)
     {
-        $this->post = $postData;
+        $id = $this->postsData['auto_id'];
 
-        $id = $this->db['posts'][count($this->db['posts']) - 1]['id'] + 1;
+        $postData->setId($id);
 
-        $this->post->setId($id);
-
-        $newPostData = [
-            'id' => $this->post->getId(),
-            'title' => $this->post->getTitle(),
-            'content' => $this->post->getContent(),
+        $this->postsData[] = [
+            'id' => $postData->getId(),
+            'title' => $postData->getTitle(),
+            'content' => $postData->getContent(),
         ];
 
-        array_push($this->db['posts'], $newPostData);
-        file_put_contents($this->connector->getDbFilePath(), json_encode($this->db));
+        ++$this->postsData['auto_id'];
+
+        return $this->storage->setData('posts', $this->postsData);
     }
 
     /**
      * @param $id
-     * @return bool
+     *
+     * @return bool|mixed
      */
     public function find($id)
     {
-        $i = 0;
-
-        foreach ($this->db['posts'] as $post) {
+        $i = -1;
+        foreach ($this->postsData as $post) {
             if ($post['id'] == $id) {
-                return $this->db['posts'][$i];
+                return $this->postsData[$i];
             }
-
             ++$i;
         }
 
@@ -82,29 +77,22 @@ class PostRepository implements RepositoryInterface
     }
 
     /**
-     * @param $postData
-     * @return bool
+     * @param PostEntity $postData
+     *
+     * @return bool|mixed
      */
-    public function update($postData)
+    public function update(PostEntity $postData)
     {
-        $this->post = $postData;
+        $i = -1;
+        foreach ($this->postsData as $post) {
+            if ($post['id'] == $postData->getId()) {
+                $this->postsData[$i]['title'] = $postData->getTitle();
+                $this->postsData[$i]['content'] = $postData->getContent();
 
-        $i = 0;
+                $this->storage->setData('posts', $this->postsData);
 
-        foreach ($this->db['posts'] as $post) {
-            if ($post['id'] == $this->post->getId()) {
-                $editedPostData = [
-                    'id' => $this->post->getId(),
-                    'title' => $this->post->getTitle(),
-                    'content' => $this->post->getContent(),
-                ];
-
-                $this->db['posts'][$i] = $editedPostData;
-                file_put_contents($this->connector->getDbFilePath(), json_encode($this->db));
-
-                return $this->db['posts'][$i];
+                return $this->postsData[$i];
             }
-
             ++$i;
         }
 
@@ -113,21 +101,23 @@ class PostRepository implements RepositoryInterface
 
     /**
      * @param $id
+     *
+     * @return bool
      */
     public function remove($id)
     {
-        $i = 0;
-
-        foreach ($this->db['posts'] as $post) {
+        $i = -1;
+        foreach ($this->postsData as $post) {
             if ($post['id'] == $id) {
-                unset($this->db['posts'][$i]);
+                unset($this->postsData[$i]);
 
-                $this->db['posts'] = array_values($this->db['posts']);
+                $this->postsData = array_merge($this->postsData);
 
-                file_put_contents($this->connector->getDbFilePath(), json_encode($this->db));
+                return $this->storage->setData('posts', $this->postsData);
             }
-
             ++$i;
         }
+
+        return false;
     }
 }

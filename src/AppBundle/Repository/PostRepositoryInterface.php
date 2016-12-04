@@ -2,31 +2,37 @@
 
 namespace AppBundle\Repository;
 
+use AppBundle\Entity\PostEntity;
+
 /**
- * Interface RepositoryInterface
+ * Interface PostRepositoryInterface.
  */
-interface RepositoryInterface
+interface PostRepositoryInterface
 {
     /**
-     * @param $entityData
+     * @param PostEntity $entityData
+     *
      * @return mixed
      */
-    public function insert($entityData);
+    public function insert(PostEntity $entityData);
 
     /**
-     * @param $entityData
+     * @param PostEntity $entityData
+     *
      * @return mixed
      */
-    public function update($entityData);
+    public function update(PostEntity $entityData);
 
     /**
      * @param $id
+     *
      * @return mixed
      */
     public function remove($id);
 
     /**
      * @param $id
+     *
      * @return mixed
      */
     public function find($id);

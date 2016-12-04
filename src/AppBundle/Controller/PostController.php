@@ -10,6 +10,9 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
+/**
+ * Class PostController.
+ */
 class PostController extends Controller
 {
     /**
@@ -37,29 +40,24 @@ class PostController extends Controller
      * @Method("POST")
      *
      * @param Request $request
-     * @return \Symfony\Component\HttpFoundation\RedirectResponse
+     *
+     * @return \Symfony\Component\HttpFoundation\RedirectResponse|JsonResponse
      */
     public function newAction(Request $request)
     {
         $this->repository = new PostRepository();
 
-        $request->initialize(
-            array(),
-            array(),
-            array(),
-            array(),
-            array(),
-            array(),
-            '{"title": "post-title-NEW", "content": "post-content-NEW"}'
-        );
-
         $newPostData = json_decode($request->getContent(), true);
 
         $request->request->replace($newPostData);
 
+        if (empty($newPostData['title'])) {
+            return new JsonResponse('Error: Title is empty.');
+        }
+
         $post = new PostEntity();
-        $post->setTitle($request->request->get('title'));
-        $post->setContent($request->request->get('content'));
+        $post->setTitle($newPostData['title']);
+        $post->setContent($newPostData['content']);
 
         $this->repository->insert($post);
 
@@ -92,31 +90,26 @@ class PostController extends Controller
      * @Method({"PUT", "PATCH"})
      *
      * @param Request $request
-     * @param $id
+     * @param int     $id
+     *
      * @return JsonResponse
      */
     public function editAction(Request $request, $id)
     {
         $this->repository = new PostRepository();
 
-        $request->initialize(
-            array(),
-            array(),
-            array(),
-            array(),
-            array(),
-            array(),
-            '{"title": "post-title-EDITED", "content": "post-content-EDITED"}'
-        );
-
         $editedPostData = json_decode($request->getContent(), true);
 
         $request->request->replace($editedPostData);
 
+        if (empty($editedPostData['title'])) {
+            return new JsonResponse('Error: Title is empty.');
+        }
+
         $post = new PostEntity();
         $post->setId($id);
-        $post->setTitle($request->request->get('title'));
-        $post->setContent($request->request->get('content'));
+        $post->setTitle($editedPostData['title']);
+        $post->setContent($editedPostData['content']);
 
         return new JsonResponse($this->repository->update($post));
     }
