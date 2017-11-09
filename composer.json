@@ -1,6 +1,6 @@
 {
-    "name": "luka/geekhub-php-hw6",
-    "description": "Geekhub PHP HomeWork#6: Symfony Blog Application",
+    "name": "luka/geekhub-php-symfony",
+    "description": "Geekhub PHP HomeWork: Symfony",
     "license": "MIT",
     "type": "project",
     "authors": [

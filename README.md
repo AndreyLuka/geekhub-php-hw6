@@ -1,15 +1,15 @@
-Geekhub PHP HomeWork#7: Symfony Blog Application - HTTP methods
+Geekhub PHP HomeWork#7: Symfony - HTTP methods
 ===================
 
-####Setup:
+#### Setup:
 
 ```bash
-$ git clone https://github.com/AndreyLuka/geekhub-php-hw6 -b hw7
-$ cd geekhub-php-hw6
+$ git clone https://github.com/AndreyLuka/geekhub-php-symfony -b hw7
+$ cd geekhub-php-symfony
 $ composer install
 ``` 
 
-####Links:
+#### Links:
 
 GET /posts<br>
 GET /posts/{id}<br>
